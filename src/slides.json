@@ -1,0 +1,226 @@
+[
+  {
+    "teammate": 1,
+    "speaker": "Teammate 1: ArkaRoy",
+    "title": "Title",
+    "visual": "project title and team names.",
+    "quote": "We are going to answer one question: how do you count the number of *different* things in a huge stream of data when you cannot afford to remember everything you have seen? Our method is called BJKST, after Bar-Yossef, Jayram, Kumar, Sivakumar and Trevisan, who published it in 2002."
+  },
+  {
+    "teammate": 1,
+    "speaker": "Teammate 1: ArkaRoy",
+    "title": "The hook",
+    "visual": "a stream of artist names flowing past, with repeats highlighted.",
+    "quote": "The obvious solution is to keep a list of every artist we have seen, and check each new play against the list. For ten thousand songs that is trivial. But the same question shows up as *unique visitors* on a website, *unique IP addresses* on a network, *unique words* in a corpus. When the data is too big, the list itself becomes the problem. We want the count without the list."
+  },
+  {
+    "teammate": 1,
+    "speaker": "Teammate 1: ArkaRoy",
+    "title": "The formal problem",
+    "visual": "this statement verbatim:",
+    "quote": "**Problem (DISTINCT-ELEMENTS).** A stream \u03c3 = \u27e8a\u2081, a\u2082, \u2026, a_m\u27e9 arrives one token at a time. Each token comes from a universe [n] = {1, \u2026, n}. We may read the stream **once**, in order, and we may use only **small memory**. Let d be the number of distinct tokens that appear. Output an estimate d\u0302 such that"
+  },
+  {
+    "teammate": 1,
+    "speaker": "Teammate 1: ArkaRoy",
+    "title": "The streaming model",
+    "visual": "a small diagram: tokens a\u2081 \u2026 a_m, one-way arrow, a small box labelled \"memory\".",
+    "quote": "Three numbers matter. m is how long the stream is. n is how many different tokens are even possible. d is how many different tokens actually appear. We read left to right, once, and we want memory much smaller than both m and n."
+  },
+  {
+    "teammate": 1,
+    "speaker": "Teammate 1: ArkaRoy",
+    "title": "Why not the easy ways",
+    "visual": "three crossed-out boxes: *exact*, *deterministic*, *random sampling of tokens*.",
+    "quote": "Two things are provably impossible in small memory: being exact, and being deterministic. So we must accept approximate and randomized. What about taking a random sample of the plays? That also fails. A sample of plays mostly catches popular artists. In our data Ed Sheeran appears 67 times, yet 1,987 artists appear exactly once. A sample of plays would almost surely miss the rare ones. We need to sample **distinct artists**, not plays. Teammate 2 will show how a hash function does exactly that."
+  },
+  {
+    "teammate": 1,
+    "speaker": "Teammate 1: ArkaRoy",
+    "title": "The dataset",
+    "visual": "the Kaggle page name, the number 10,000 \u00d7 35, and 5 relevant column names.",
+    "quote": "Our data is the Kaggle dataset *Top 10,000 Spotify Songs* by joebeachcapital. It has 10,000 tracks and 35 columns: track, artist and album identifiers, release date, popularity, genres, audio features like danceability and tempo, label, and copyright. We use only three columns: **Artist URI(s)**, **Album URI**, and **Artist Genres**. The main one is the artist."
+  },
+  {
+    "teammate": 1,
+    "speaker": "Teammate 1: ArkaRoy",
+    "title": "Why it fits, and the stream",
+    "visual": "the table from 0.4 and this stream, taken from the first nine tracks of the file:",
+    "quote": "Nine tracks give eleven tokens, because a collaboration like 'Mike Posner, Seeb' is one row but two artists. Over the whole file the stream has 12,035 tokens and the true number of distinct artists is **3,813**. It fits our problem for four reasons. First, it has heavy repetition: Ed Sheeran 67 times, many artists once. Second, the exact answer is known, so we can check the algorithm. Third, it is real categorical data. Fourth, the same file gives us two more streams for free: albums and genres."
+  },
+  {
+    "teammate": 1,
+    "speaker": "Teammate 1: ArkaRoy",
+    "title": "The idea in three sentences",
+    "visual": "",
+    "quote": "Here is the whole idea. One: give every artist a random-looking number with a hash function, so the same artist always gets the same number. Two: keep only artists whose number is 'lucky', say one artist in 2^z, and make 'lucky' rarer whenever our memory fills up. Three: at the end, count how many lucky artists we hold and multiply by 2^z. For example, if we keep one artist in eight and end up holding 480, we estimate 480 \u00d7 8 = 3,840 artists."
+  },
+  {
+    "teammate": 1,
+    "speaker": "Teammate 1: ArkaRoy",
+    "title": "Roadmap",
+    "visual": "",
+    "quote": "Teammate 2 explains the hashing that makes 'lucky' well-defined. Teammate 3 proves, using Markov's inequality, that the estimate is right with high probability. Teammate 4 runs it end to end on our data."
+  },
+  {
+    "teammate": 2,
+    "speaker": "Teammate 2: Ashish",
+    "title": "What a hash function is",
+    "visual": "item \u2192 h \u2192 number, with \"same input, same output\".",
+    "quote": "A hash function h takes an item, here an artist, and returns a number. It is completely deterministic: the same artist always gives the same number, so repeated plays of one artist all land on the same number. That is what lets us count *distinct* artists instead of plays. The randomness comes from *which* h we pick at the start, from a big family of possible functions."
+  },
+  {
+    "teammate": 2,
+    "speaker": "Teammate 2: Ashish",
+    "title": "The two properties we rely on",
+    "visual": "Definition 0.4.5 in symbols and in words.",
+    "quote": "We treat the hash function as a black box with two promises. One: **uniform**. Each artist's number is equally likely to be anything in the range. Two: **pairwise independent**, also called 2-universal. For any two different artists x and x\u2032, and any target values y and y\u2032, the probability that h(x) = y *and* h(x\u2032) = y\u2032 is exactly 1/|Y|\u00b2. In words: knowing one artist's number tells you nothing about another artist's number. We do **not** need full independence among all artists, only among pairs, and that is much cheaper to get."
+  },
+  {
+    "teammate": 2,
+    "speaker": "Teammate 2: Ashish",
+    "title": "One concrete family",
+    "visual": "h(x) = (a\u00b7x + b) mod p, with p a prime and a, b chosen uniformly at random mod p.",
+    "quote": "To show such a family exists, here is a classic one. Pick a prime p and two random numbers a and b. Define h(x) = (a\u00b7x + b) mod p. Why is it pairwise independent? For two different inputs x and x\u2032, the two equations a\u00b7x + b = y and a\u00b7x\u2032 + b = y\u2032 (mod p) have exactly one solution (a, b), because x \u2212 x\u2032 has an inverse mod p. There are p\u00b2 possible (a, b) pairs, each equally likely, so each pair of outputs (y, y\u2032) has probability 1/p\u00b2. That is exactly the definition. And the function is stored in just two numbers, a and b. A fully random function would need a table with one entry for every possible artist."
+  },
+  {
+    "teammate": 2,
+    "speaker": "Teammate 2: Ashish",
+    "title": "How we apply it to the dataset",
+    "visual": "the pipeline and the table below.",
+    "quote": "Every artist now carries a luck score. Wham! has 4 trailing zeros, which is rare, while Taylor Swift has 1, which is common."
+  },
+  {
+    "teammate": 2,
+    "speaker": "Teammate 2: Ashish",
+    "title": "Why 'lucky' has a precise probability",
+    "visual": "P(zeros(h(x)) \u2265 r) = 1/2^r, and the table of real counts.",
+    "quote": "Half of all hash values are even, so half of the artists have at least one trailing zero. A quarter have at least two. In general the probability of at least r trailing zeros is 1/2^r. Let Y_r be the number of distinct artists that reach level r. Then its expected value is d/2^r. Here are the real counts for our 3,813 artists."
+  },
+  {
+    "teammate": 2,
+    "speaker": "Teammate 2: Ashish",
+    "title": "Why pairwise independence is exactly what the proof needs",
+    "visual": "Y_r = \u03a3 X_{r,j}; Var(Y_r) = \u03a3 Var(X_{r,j}) \u2264 d/2^r.",
+    "quote": "Y_r is a sum of indicator variables, one per distinct artist. To bound how far Y_r strays from its mean, Teammate 3 needs its variance. The variance of a sum equals the sum of the variances only when the terms are pairwise uncorrelated, and pairwise independence gives us exactly that. Nothing stronger is needed. That is why a cheap two-number hash is enough for the whole proof."
+  },
+  {
+    "teammate": 2,
+    "speaker": "Teammate 2: Ashish",
+    "title": "One more hash, briefly",
+    "visual": "",
+    "quote": "The real algorithm also uses a second hash g that shrinks the stored values to save memory. It matters only for memory and adds at most 1/6 to the error probability."
+  },
+  {
+    "teammate": 3,
+    "speaker": "Teammate 3: Sagnik Das",
+    "title": "The budget intuition",
+    "visual": "",
+    "quote": "The average of those ten numbers is 10. Markov says: the fraction of values that are at least t cannot exceed the mean divided by t. With t = 35 that is 10/35, about 29%, so at most two of the ten people can hold 35 or more. Same logic for salaries: if a company's average salary is \u20b910 lakh and nobody earns less than zero, at most 20% of employees can earn \u20b950 lakh or more. We need no knowledge of the distribution, only the mean."
+  },
+  {
+    "teammate": 3,
+    "speaker": "Teammate 3: Sagnik Das",
+    "title": "The statement and two short proofs",
+    "visual": "",
+    "quote": "**Markov's inequality.** If X \u2265 0 and t > 0, then **P{X \u2265 t} \u2264 E[X] / t.**"
+  },
+  {
+    "teammate": 3,
+    "speaker": "Teammate 3: Sagnik Das",
+    "title": "Why X \u2265 0, and how loose is it?",
+    "visual": "the real-data tables.",
+    "quote": "Two warnings. First, X must be non-negative, otherwise negative values can cancel the large ones. Second, Markov is a *guarantee*, not a prediction, so it can be very loose. Let me show real data."
+  },
+  {
+    "teammate": 3,
+    "speaker": "Teammate 3: Sagnik Das",
+    "title": "Chebyshev is Markov applied to a square",
+    "visual": "",
+    "quote": "**Chebyshev's inequality.** P{ |X \u2212 E[X]| \u2265 t } \u2264 Var(X) / t\u00b2."
+  },
+  {
+    "teammate": 3,
+    "speaker": "Teammate 3: Sagnik Das",
+    "title": "Warm-up use, the tidemark algorithm",
+    "visual": "Y_r = number of distinct artists with at least r trailing zeros, E[Y_r] = d/2^r, Var(Y_r) \u2264 d/2^r.",
+    "quote": "Teammate 2 showed E[Y_r] = d/2^r. Now use the two inequalities."
+  },
+  {
+    "teammate": 3,
+    "speaker": "Teammate 3: Sagnik Das",
+    "title": "The BJKST failure probability",
+    "visual": "failure is unlikely because it needs a *big deviation* of Y_r from its mean. That is Chebyshev's job. For *large* r (r \u2265 s), failure may happen, but then T = r is itself unlikely, because the bucket would have had to overflow at level s \u2212 1. That is Markov's job.\"",
+    "quote": "For *small* r, T = r is plausible, so we must show failure is unlikely because it needs a *big deviation* of Y_r from its mean. That is Chebyshev's job. For *large* r (r \u2265 s), failure may happen, but then T = r is itself unlikely, because the bucket would have had to overflow at level s \u2212 1. That is Markov's job."
+  },
+  {
+    "teammate": 3,
+    "speaker": "Teammate 3: Sagnik Das",
+    "title": "Why the event {T \u2265 s} equals {Y_{s\u22121} \u2265 c/\u03b5\u00b2}",
+    "visual": "",
+    "quote": "z only moves from level s \u2212 1 to level s when the bucket at level s \u2212 1 has at least c/\u03b5\u00b2 items. Y_r only grows as the stream goes on, because it counts distinct tokens seen so far. So the bucket overflowed at some moment exactly when the *final* Y_{s\u22121} is at least c/\u03b5\u00b2. That is why we can bound P{T \u2265 s} using only the mean of Y_{s\u22121}, with no need for the full distribution."
+  },
+  {
+    "teammate": 3,
+    "speaker": "Teammate 3: Sagnik Das",
+    "title": "Real numbers for the whole bound",
+    "visual": "",
+    "quote": "On our data, the proof's bound on failure is about 12%. The true failure probability is far smaller, since the real Y\u2085 is about 120 and the bucket would need 2,304. This gap is the price of making no assumption except the mean and the variance."
+  },
+  {
+    "teammate": 3,
+    "speaker": "Teammate 3: Sagnik Das",
+    "title": "Making the failure probability as small as we like",
+    "visual": "the numbers.\"",
+    "quote": "One run fails with probability at most 1/3. Run k = \u0398(log 1/\u03b4) independent copies and output the **median**. The median is wrong only if at least half the copies are wrong, and a Chernoff bound makes that probability 2^(\u2212\u03a9(k)). Chernoff itself is Markov's inequality applied to e^{\u03bbX}, which is yet another appearance of Markov. So the whole guarantee rests on the one-line inequality we proved at the start."
+  },
+  {
+    "teammate": 4,
+    "speaker": "Teammate 4: Pritham Prajwin V",
+    "title": "The machine on one slide",
+    "visual": "this diagram, with the owner of each part in brackets:",
+    "quote": "Here is the machine. Every artist goes through the hash and gets a luck score, the number of trailing zeros. We keep an artist in the bucket B only if its luck is at least the current level z. When the bucket reaches its capacity, 2,304 artists, we raise z by one and throw out everyone whose luck is below the new level. At the end we output the bucket size times 2^z."
+  },
+  {
+    "teammate": 4,
+    "speaker": "Teammate 4: Pritham Prajwin V",
+    "title": "The machine by hand, on the first 11 tokens",
+    "visual": "the table and reveal one row per click. The luck scores come from Teammate 2's hash (the same function; Coldplay has 2 zeros, as on Teammate 2's slide).",
+    "quote": "Watch the bucket. At the start every artist fits. At token 4 the bucket fills, so we make 'lucky' harder: z goes to 1, and the artists with no trailing zero are deleted. Foxes is extremely lucky, seven zeros, so it stays through everything. Captain & Tennille has no luck and is never even stored. At token 7 the bucket fills again, z goes to 2, and again the less lucky ones go. At the end three artists survive at rate 1 in 4, so we estimate 12. The truth is 11. Notice that the artists in the bucket are exactly those with at least 2 zeros among all eleven, the quantity Y\u2082 that Teammate 3 analysed."
+  },
+  {
+    "teammate": 4,
+    "speaker": "Teammate 4: Pritham Prajwin V",
+    "title": "The full run, 12,035 tokens, proof settings",
+    "visual": "\u03b5 = 0.5, c = 576, capacity 2,304.",
+    "quote": "We ran all 12,035 tokens through the machine. The bucket filled once, at token 4,984, so z moved from 0 to 1 and stayed there. At the end the bucket holds 1,953 artists. That is exactly Y\u2081 from Teammate 2's table, the number of artists with at least one trailing zero. Multiply by 2 and we output 3,906. The truth is 3,813, so we are 2.4% off, comfortably inside our promised \u03b5 of 50%."
+  },
+  {
+    "teammate": 4,
+    "speaker": "Teammate 4: Pritham Prajwin V",
+    "title": "The median trick in action",
+    "visual": "five independent copies on the real data:",
+    "quote": "With a small bucket a single copy is noisy: errors of 9, 14, 11 and 16 percent. The fix is the median trick. Run k independent copies with independent hash functions and output the median. The median is wrong only if at least half of the copies are wrong, and a Chernoff bound, which is Markov's inequality applied to an exponential, says that probability falls exponentially in k."
+  },
+  {
+    "teammate": 4,
+    "speaker": "Teammate 4: Pritham Prajwin V",
+    "title": "One machine, three streams",
+    "visual": "the same algorithm on three columns of the file. The hash and the code are unchanged, and only the stream differs.",
+    "quote": "The same machine counts artists, albums and genres. Look at the level z: it adapts by itself, 1 for artists, 2 for albums, 0 for genres. Genres are the interesting case. There are only 907 distinct genres, fewer than the capacity of 2,304, so the bucket never fills, z stays at 0 and the answer is exact. That is the T = 0 case in the notes. Also notice that genres have 37,431 tokens but only 907 distinct values: the algorithm's behaviour depends on d, not on how long the stream is. For genres, which are text, we first turn the string into an integer, and from there the pipeline is identical."
+  },
+  {
+    "teammate": 4,
+    "speaker": "Teammate 4: Pritham Prajwin V",
+    "title": "The whole guarantee, assembled",
+    "visual": "the chain:",
+    "quote": "Here is the full chain. Pairwise independence from the hash gives the mean and variance. Markov and Chebyshev turn those into a failure probability of at most one in six. The second hash adds another sixth, so one copy is an (\u03b5, one-third) estimator. The median of a logarithmic number of copies brings the failure probability down to any \u03b4 we like. And the memory per copy depends on \u03b5, not on the number of distinct items. The notes also show this is nearly optimal: any such algorithm needs at least order 1/\u03b5\u00b2 and log n space, and a later, more advanced algorithm closes the small remaining gap."
+  },
+  {
+    "teammate": 4,
+    "speaker": "Teammate 4: Pritham Prajwin V",
+    "title": "Conclusions",
+    "visual": "four lines:",
+    "quote": "To summarise: from a one-line inequality and a cheap hash function, we get an algorithm that counts distinct items within a chosen error, with a chosen confidence, in memory that does not grow with the number of distinct items. On our data it counted 3,813 artists to within about 2%. Thank you. We are happy to take questions."
+  }
+]
