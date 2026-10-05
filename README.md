@@ -151,8 +151,8 @@ We benchmarked the algorithm on the real-world **Top 10,000 Spotify Tracks Datas
 
 ### Benchmark Results across Buffer Capacities
 
-| Buffer Capacity ($C$) | Final Depth ($z$) | Retained Buffer ($|B|$) | Estimate ($\hat{F}_0$) | True ($d$) | Relative Error |
-|---|---|---|---|---|---|
+| Buffer Capacity ($C$) | Final Depth ($z$) | Retained Buffer ($\vert B \vert$) | Estimate ($\hat{F}_0$) | True ($d$) | Relative Error |
+|:---|:---:|:---:|:---:|:---:|:---:|
 | **$C = 64$** | 6 | 59 | **3,776** | 3,813 | **-0.97%** |
 | **$C = 128$** | 5 | 119 | **3,808** | 3,813 | **-0.13%** |
 | **$C = 256$** | 4 | 239 | **3,824** | 3,813 | **+0.29%** |
@@ -206,12 +206,16 @@ Visit `http://localhost:5173` to launch the interactive presentation deck.
 
 **Course:** Probability II | BSDS 2026, ISI Bangalore
 
-| Act | Speaker | Role & Topic | Duration |
-|:---:|---|---|:---:|
-| **Act 1** | **Arkaroy** | The Distinct Elements Problem, Streaming Limits & Spotify Dataset | ~6 min |
-| **Act 2** | **Ashish** | Universal Hash Families, Trailing Zeros & Stream Filtering | ~5 min |
-| **Act 3** | **Sagnik Das** | Theoretical Proof: Markov's & Chebyshev's Bounds, Variance Control | ~8 min |
-| **Act 4** | **Pritham Prajwin V** | Full Synthesis: Worked Example, Real Values & Live Simulation | ~9 min |
+| Act | Speaker | Role & Topic | Stage Time | Defense Dossier Depth |
+|:---:|---|---|:---:|:---:|
+| **Act 1** | **Arkaroy** | The Distinct Elements Problem, Streaming Limits & Spotify Dataset | ~7–8 min | 3,466 words (Full Prep & Q&A) |
+| **Act 2** | **Ashish** | Universal Hash Families, Trailing Zeros & Stream Filtering | ~6–7 min | 3,738 words (Full Prep & Q&A) |
+| **Act 3** | **Sagnik Das** | Theoretical Proof: Markov's & Chebyshev's Bounds, Variance Control | ~9–10 min | 4,807 words (Full Prep & Q&A) |
+| **Act 4** | **Pritham Prajwin V** | Full Synthesis: Worked Example, Real Values & Live Simulation | ~9–10 min | 4,757 words (Full Prep & Q&A) |
+| **Total** | **Team (4)** | **Complete BJKST Capstone Presentation** | **~32–35 min** | **16,768 words total** |
+
+> 💡 **Note on Speaker Notes vs. Stage Time:**  
+> The `.docx` files in `/public/speaker_notes/` serve as **comprehensive defense dossiers** (~3,500–4,800 words each). They are not intended to be recited verbatim in the 7–10 minute stage window (which would require speaking at >400 WPM). Rather, they provide full mathematical derivations, contingency proofs, and exhaustive Q&A defense banks for faculty cross-examination.
 
 ---
 
