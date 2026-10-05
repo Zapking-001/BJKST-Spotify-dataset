@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { InlineMath } from 'react-katex';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell, ResponsiveContainer, ReferenceLine } from 'recharts';
+import edgeCaseIcon from '../assets/edge_case_icon.png';
 
 // ─── TOKEN SIMULATOR (Slide 27) ─────────────────────────────────────────────
 
@@ -17,6 +18,21 @@ const ARTIST_POOL = [
   'Sam Smith', 'Ed Sheeran', 'The Weeknd', 'Drake', 'Taylor Swift',
   'Calvin Harris', 'Avicii', 'Dua Lipa', 'David Guetta', 'Bruno Mars',
   'Imagine Dragons', 'Adele', 'Shawn Mendes', 'Billie Eilish', 'Sia'
+];
+
+// Edge case stream: all artists have tz <= 1 so at level z=2 all bucket items are evicted (Zero-Survivors)
+const EDGE_CASE_STREAM: TokenEntry[] = [
+  { name: 'Frankie Valli', trailingZeros: 0, id: 1 },
+  { name: 'Mike Posner',   trailingZeros: 0, id: 2 },
+  { name: 'Foxes',         trailingZeros: 1, id: 3 },
+  { name: 'Seeb',          trailingZeros: 1, id: 4 },
+  { name: 'Coldplay',      trailingZeros: 1, id: 5 },
+  { name: 'Tinie Tempah',  trailingZeros: 1, id: 6 },
+  { name: 'Maroon 5',      trailingZeros: 0, id: 7 },
+  { name: 'Temper Trap',   trailingZeros: 1, id: 8 },
+  { name: 'John Newman',   trailingZeros: 0, id: 9 },
+  { name: 'Katy Perry',    trailingZeros: 1, id: 10 },
+  { name: 'Sam Smith',     trailingZeros: 0, id: 11 },
 ];
 
 function generateRandomStream(): TokenEntry[] {
@@ -75,6 +91,17 @@ export const TokenSimulator = () => {
   const [purged, setPurged] = useState<number[]>([]);
   const [done, setDone] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isEdgeCase, setIsEdgeCase] = useState(false);
+  const activeTokenRef = useRef<HTMLDivElement | null>(null);
+  const streamContainerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (step === 0) {
+      streamContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    } else if (activeTokenRef.current) {
+      activeTokenRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [step]);
 
   const stepForward = useCallback(() => {
     if (step >= tokens.length) {
@@ -137,8 +164,12 @@ export const TokenSimulator = () => {
 
   const handleAutoPlay = () => {
     if (done) {
-      const newStream = generateRandomStream();
-      setTokens(newStream);
+      if (isEdgeCase) {
+        setTokens(EDGE_CASE_STREAM);
+      } else {
+        const newStream = generateRandomStream();
+        setTokens(newStream);
+      }
       setStep(0);
       setBucket([]);
       setZ(0);
@@ -163,8 +194,21 @@ export const TokenSimulator = () => {
 
   const handleNewRandomStream = () => {
     setIsPlaying(false);
+    setIsEdgeCase(false);
     const newStream = generateRandomStream();
     setTokens(newStream);
+    setStep(0);
+    setBucket([]);
+    setZ(0);
+    setWarning(null);
+    setPurged([]);
+    setDone(false);
+  };
+
+  const handleEdgeCaseStream = () => {
+    setIsPlaying(false);
+    setIsEdgeCase(true);
+    setTokens(EDGE_CASE_STREAM);
     setStep(0);
     setBucket([]);
     setZ(0);
@@ -177,8 +221,51 @@ export const TokenSimulator = () => {
 
   return (
     <div className="w-full max-w-5xl pointer-events-auto">
-      <div className="glass-card rounded-3xl p-10 border border-amber-500/20 shadow-[0_0_50px_rgba(245,158,11,0.1)]">
+      <div className="glass-card rounded-3xl p-10 border border-amber-500/20 shadow-[0_0_50px_rgba(245,158,11,0.1)] relative">
         <div className="absolute top-0 left-0 w-full h-1 bg-amber-500 rounded-t-3xl shadow-[0_0_20px_#f59e0b]"></div>
+
+        {/* Top-Right Corner: Reflexive Edge Case Mode Preset Button */}
+        <div className="absolute top-8 right-10 flex items-center gap-2">
+          <button
+            onClick={handleEdgeCaseStream}
+            title={isEdgeCase ? "Edge Case: Zero-Survivors Active" : "Trigger Edge Case: Zero-Survivors"}
+            className={`group relative flex items-center transition-all duration-300 cursor-pointer active:scale-95 ${
+              isEdgeCase
+                ? 'gap-2.5 px-4 py-2 rounded-2xl font-mono text-xs border bg-amber-950/60 border-amber-400 text-amber-200 shadow-[0_0_25px_rgba(245,158,11,0.45)] ring-1 ring-amber-400/50'
+                : 'p-2.5 rounded-xl border border-amber-500/20 bg-black/50 hover:bg-amber-950/30 text-white/70 hover:text-amber-200 hover:border-amber-400/70 hover:shadow-[0_0_25px_rgba(245,158,11,0.35)] backdrop-blur-md'
+            }`}
+          >
+            <span
+              className={`w-4 h-4 inline-block transition-all duration-300 ${
+                isEdgeCase
+                  ? 'bg-amber-400 drop-shadow-[0_0_8px_#f59e0b]'
+                  : 'bg-white/70 group-hover:bg-amber-300 group-hover:drop-shadow-[0_0_6px_rgba(245,158,11,0.5)]'
+              }`}
+              style={{
+                maskImage: `url(${edgeCaseIcon})`,
+                WebkitMaskImage: `url(${edgeCaseIcon})`,
+                maskSize: 'contain',
+                WebkitMaskSize: 'contain',
+                maskRepeat: 'no-repeat',
+                WebkitMaskRepeat: 'no-repeat',
+                maskPosition: 'center',
+                WebkitMaskPosition: 'center',
+              }}
+            />
+            {isEdgeCase && (
+              <>
+                <span className="font-semibold tracking-wide font-mono text-xs">
+                  Edge Case: Zero-Survivors
+                </span>
+                <span className="flex h-2 w-2 relative">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-400 shadow-[0_0_6px_#f59e0b]"></span>
+                </span>
+              </>
+            )}
+          </button>
+        </div>
+
         <div className="font-mono text-amber-500 uppercase tracking-widest text-sm mb-6">27 / Interactive Widget · Token Stream Simulator</div>
         <h1 className="text-4xl font-serif font-bold mb-2">Live 11-Token Stream Simulator</h1>
         <p className="text-white/60 font-light text-sm mb-8">Capacity <InlineMath math="c=4" />, Level <InlineMath math={`z=${z}`} /></p>
@@ -187,16 +274,20 @@ export const TokenSimulator = () => {
           {/* Stream queue */}
           <div>
             <div className="text-xs font-mono text-white/40 uppercase tracking-widest mb-3">Incoming Stream</div>
-            <div className="space-y-1 max-h-64 overflow-y-auto">
+            <div ref={streamContainerRef} className="space-y-1 max-h-64 overflow-y-auto">
               {tokens.map((t, i) => {
                 const isCurrent = i === step - 1;
                 const isPending = i >= step;
                 return (
-                  <div key={t.id} className={`flex items-center px-3 py-1.5 rounded-lg text-sm font-mono transition-all duration-300 ${
-                    isCurrent ? 'bg-amber-500/20 border border-amber-500/50 text-amber-200' :
-                    isPending ? 'text-white/30 border border-transparent' :
-                    'text-white/60 border border-transparent'
-                  }`}>
+                  <div
+                    key={t.id}
+                    ref={isCurrent ? activeTokenRef : null}
+                    className={`flex items-center px-3 py-1.5 rounded-lg text-sm font-mono transition-all duration-300 ${
+                      isCurrent ? 'bg-amber-500/20 border border-amber-500/50 text-amber-200' :
+                      isPending ? 'text-white/30 border border-transparent' :
+                      'text-white/60 border border-transparent'
+                    }`}
+                  >
                     <span className="w-5 text-white/20 text-xs">{i+1}</span>
                     <span className="flex-1">{t.name}</span>
                     {trailingZerosBadge(t.trailingZeros)}
